@@ -1,0 +1,11 @@
+{
+  "_comment": "Claude Desktop MCP server registration. Add this to claude_desktop_config.json under mcpServers. Replace YOUR_PAT_HERE with a Personal Access Token from https://cloud.ouraring.com/personal-access-tokens. Do NOT commit a populated copy of this file.",
+  "mcpServers": {
+    "oura": {
+      "command": "oura-mcp",
+      "env": {
+        "OURA_PAT": "YOUR_PAT_HERE"
+      }
+    }
+  }
+}

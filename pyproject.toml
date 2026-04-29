@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "oura-mcp"
+version = "0.1.0.dev0"
+description = "Model Context Protocol server exposing the full Oura Ring v2 API"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.14"
+authors = [{ name = "Jeff Hamblin" }]
+keywords = ["mcp", "oura", "health", "sleep", "hrv", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "mcp>=1.2",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+oura-mcp = "oura_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/jhamblin/oura-mcp"
+Issues = "https://github.com/jhamblin/oura-mcp/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/oura_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = ["live: hits the real Oura API; requires OURA_PAT and -m live"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
