@@ -17,6 +17,7 @@ from mcp.server.fastmcp import FastMCP
 from .._dates import resolve_date_params
 from .._errors import safe_tool
 from ..auth import resolve_pat
+from ..cache import cache_read, cache_write, resolve_cache_dir
 from ..client import OuraClient
 
 # ---------------------------------------------------------------------------
@@ -107,6 +108,78 @@ def _percentile_nearest_rank(sorted_data: list[float], p: int) -> float:
 def _secs_to_min(secs: int | float | None) -> int | None:
     """Convert seconds to whole minutes, or None."""
     return round(secs / 60) if secs is not None else None
+
+
+async def fetch_summary_range(
+    client: OuraClient,
+    req_start: str,
+    req_end: str,
+    force_refresh: bool = False,
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    """Fetch per-day summary data for a range, using the local cache when available.
+
+    Returns:
+        day_data:  {date: {"sleep_sessions": [...], "daily_sleep": {...}, ...}}
+        statuses:  {date: "hit" | "miss" | "disabled"}
+
+    Cache behaviour:
+    - "hit"      → served from cache file; no API call for that day.
+    - "miss"     → fetched from API and written to cache.
+    - "disabled" → OURA_MCP_CACHE_DIR not set; always fetches, never writes.
+
+    All uncached days are fetched in a single batched API request. force_refresh=True
+    skips cache reads but still writes (used by oura_cache_rebuild).
+    """
+    cache_dir = resolve_cache_dir()
+    dates = _date_range(req_start, req_end)
+    day_data: dict[str, dict[str, Any]] = {}
+    statuses: dict[str, str] = {}
+
+    # 1. Check cache for each day.
+    cache_misses: list[str] = []
+    for day in dates:
+        if cache_dir and not force_refresh:
+            cached = cache_read(cache_dir, day)
+            if cached is not None:
+                day_data[day] = cached
+                statuses[day] = "hit"
+                continue
+        statuses[day] = "disabled" if not cache_dir else "miss"
+        cache_misses.append(day)
+
+    if not cache_misses:
+        return day_data, statuses
+
+    # 2. Batch-fetch all missed days in one round of API calls.
+    miss_start = min(cache_misses)
+    miss_end = max(cache_misses)
+    date_params = {"start_date": miss_start, "end_date": miss_end}
+
+    sleep_by_day, ds_resp, dr_resp, spo2_resp = await asyncio.gather(
+        _fetch_sleep_by_day(client, miss_start, miss_end),
+        client.get("daily_sleep", date_params),
+        client.get("daily_readiness", date_params),
+        client.get("daily_spo2", date_params),
+    )
+
+    daily_sleep = {d["day"]: d for d in ds_resp.get("data", [])}
+    daily_readiness = {d["day"]: d for d in dr_resp.get("data", [])}
+    daily_spo2 = {d["day"]: d for d in spo2_resp.get("data", [])}
+
+    # 3. Assemble per-day dicts and write to cache.
+    for day in cache_misses:
+        data: dict[str, Any] = {
+            "date": day,
+            "sleep_sessions": sleep_by_day.get(day, []),
+            "daily_sleep": daily_sleep.get(day),
+            "daily_readiness": daily_readiness.get(day),
+            "daily_spo2": daily_spo2.get(day),
+        }
+        day_data[day] = data
+        if cache_dir:
+            cache_write(cache_dir, day, data)
+
+    return day_data, statuses
 
 
 # ---------------------------------------------------------------------------
@@ -348,27 +421,18 @@ def register(mcp: FastMCP) -> None:
         """
         params = resolve_date_params(None, start_date, end_date)
         req_start, req_end = params["start_date"], params["end_date"]
-        date_params = {"start_date": req_start, "end_date": req_end}
 
-        token = resolve_pat(pat)
-        async with OuraClient(token) as client:
-            by_day, daily_sleep_resp, daily_readiness_resp = await asyncio.gather(
-                _fetch_sleep_by_day(client, req_start, req_end),
-                client.get("daily_sleep", date_params),
-                client.get("daily_readiness", date_params),
-            )
-
-        daily_sleep = {d["day"]: d for d in daily_sleep_resp.get("data", [])}
-        daily_readiness = {d["day"]: d for d in daily_readiness_resp.get("data", [])}
+        async with OuraClient(resolve_pat(pat)) as client:
+            day_data, statuses = await fetch_summary_range(client, req_start, req_end)
 
         rows = []
         for day in _date_range(req_start, req_end):
-            sessions = by_day.get(day, [])
-            primary = _primary_session(sessions)
-            ds = daily_sleep.get(day, {})
-            dr = daily_readiness.get(day, {})
+            data = day_data.get(day, {})
+            primary = _primary_session(data.get("sleep_sessions", []))
+            ds = data.get("daily_sleep") or {}
+            dr = data.get("daily_readiness") or {}
 
-            row: dict[str, Any] = {"date": day}
+            row: dict[str, Any] = {"date": day, "cache_status": statuses.get(day, "disabled")}
             if primary:
                 row["deep_min"] = _secs_to_min(primary.get("deep_sleep_duration"))
                 row["rem_min"] = _secs_to_min(primary.get("rem_sleep_duration"))

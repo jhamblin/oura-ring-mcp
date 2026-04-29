@@ -228,3 +228,54 @@ def register(mcp: FastMCP) -> None:
             filtered = compact_sleep_sessions(filtered)
 
         return {"data": filtered}
+
+    # ------------------------------------------------------------------
+    # Cache management (step 7)
+    # ------------------------------------------------------------------
+
+    @mcp.tool()
+    @safe_tool
+    async def oura_cache_rebuild(
+        start_date: str | None = None,
+        end_date: str | None = None,
+        pat: str | None = None,
+    ) -> dict[str, Any]:
+        """Re-fetch a date range from the Oura API and overwrite the local cache.
+
+        Requires OURA_MCP_CACHE_DIR to be set. Fetches sleep sessions,
+        daily_sleep, daily_readiness, and daily_spo2 for each day in the
+        range and writes one JSON file per day to the cache directory.
+
+        Use this to:
+        - Populate the cache for the first time over a historical range.
+        - Force-refresh days where Oura has revised scores retroactively.
+
+        Parameters
+        ----------
+        start_date: Range start YYYY-MM-DD. Defaults to today.
+        end_date:   Range end YYYY-MM-DD. Defaults to today.
+        pat:        Override the resolved PAT for this call only.
+
+        Returns
+        -------
+        {"rebuilt": ["YYYY-MM-DD", ...], "count": N}
+        """
+        from ..cache import CACHE_DIR_ENV, resolve_cache_dir
+        from .derived import fetch_summary_range
+
+        cache_dir = resolve_cache_dir()
+        if not cache_dir:
+            return {
+                "error": "cache_not_configured",
+                "message": f"Set {CACHE_DIR_ENV} to enable caching.",
+            }
+
+        p = resolve_date_params(None, start_date, end_date)
+        req_start, req_end = p["start_date"], p["end_date"]
+
+        async with OuraClient(resolve_pat(pat)) as client:
+            _, statuses = await fetch_summary_range(
+                client, req_start, req_end, force_refresh=True
+            )
+
+        return {"rebuilt": sorted(statuses.keys()), "count": len(statuses)}

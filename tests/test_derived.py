@@ -325,6 +325,9 @@ async def test_summary_table_basic():
     respx.get(f"{BASE_URL}/daily_readiness").mock(
         return_value=httpx.Response(200, json=DAILY_READINESS_FIXTURE)
     )
+    respx.get(f"{BASE_URL}/daily_spo2").mock(
+        return_value=httpx.Response(200, json={"data": []})
+    )
 
     result = await _call("oura_summary_table", start_date="2026-04-27", end_date="2026-04-28")
 
@@ -350,6 +353,9 @@ async def test_summary_table_missing_day_nulls():
         return_value=httpx.Response(200, json={"data": []})
     )
     respx.get(f"{BASE_URL}/daily_readiness").mock(
+        return_value=httpx.Response(200, json={"data": []})
+    )
+    respx.get(f"{BASE_URL}/daily_spo2").mock(
         return_value=httpx.Response(200, json={"data": []})
     )
 
