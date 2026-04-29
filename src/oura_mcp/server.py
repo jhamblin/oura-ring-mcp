@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from .tools import direct
+from .tools import derived, direct
 
 mcp = FastMCP("oura-mcp")
 direct.register(mcp)
+derived.register(mcp)
 
 
 def main() -> None:
