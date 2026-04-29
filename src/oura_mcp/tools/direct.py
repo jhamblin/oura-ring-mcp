@@ -18,6 +18,7 @@ from .._dates import resolve_date_params
 from .._errors import safe_tool
 from ..auth import resolve_pat
 from ..client import OuraClient
+from .compaction import compact_sleep_sessions
 
 
 def register(mcp: FastMCP) -> None:
@@ -164,6 +165,7 @@ def register(mcp: FastMCP) -> None:
         date: str | None = None,
         start_date: str | None = None,
         end_date: str | None = None,
+        format: str = "compact",
         pat: str | None = None,
     ) -> dict[str, Any]:
         """Return all sleep periods (long_sleep + naps) for a date or range.
@@ -180,18 +182,27 @@ def register(mcp: FastMCP) -> None:
         (the wake date). This tool automatically expands the fetch range by ±1 day and
         filters results in memory by the day field, so overnight sleeps are never missed.
 
+        **Output modes (spec §6):**
+        - format="compact" (default): Drops bulky time-series (heart_rate.items,
+          hrv.items, sleep_phase_30_sec, movement_30_sec) and replaces HR/HRV with
+          {min, max, avg, samples} summaries. Keeps sleep_phase_5_min for hypnogram.
+        - format="full": Returns the unmodified Oura response. Caller is responsible
+          for context budget.
+
         Parameters
         ----------
         date:       Single day YYYY-MM-DD. Defaults to today. Mutually exclusive with
                     start_date/end_date.
         start_date: Range start YYYY-MM-DD (inclusive). Defaults to today.
         end_date:   Range end YYYY-MM-DD (inclusive). Defaults to today.
+        format:     "compact" (default) or "full". See output modes above.
         pat:        Override the resolved PAT for this call only.
 
         Returns
         -------
         {"data": [...]} — one dict per sleep period. Each includes type ("long_sleep",
-        "rest", etc.), day, bedtime_start, bedtime_end, and full sleep metrics.
+        "rest", etc.), day, bedtime_start, bedtime_end, and sleep metrics.
+        In compact mode, heart_rate and hrv contain summaries instead of raw items.
         """
         params = resolve_date_params(date, start_date, end_date)
         req_start = params["start_date"]
@@ -212,4 +223,8 @@ def register(mcp: FastMCP) -> None:
 
         # Filter to sessions whose logical day is within the originally requested range.
         filtered = [s for s in all_sessions if req_start <= s["day"] <= req_end]
+
+        if format == "compact":
+            filtered = compact_sleep_sessions(filtered)
+
         return {"data": filtered}
