@@ -195,3 +195,25 @@ async def test_oura_sleep_full_mode_preserves_items():
     assert "movement_30_sec" in session
     assert "items" in session["heart_rate"]
     assert "items" in session["hrv"]
+
+
+def test_compact_handles_null_hr_items():
+    """heart_rate.items=None must not raise TypeError."""
+    session = {
+        "id": "s1", "type": "long_sleep", "day": "2026-04-28",
+        "heart_rate": {"interval": 5, "items": None, "timestamp": "2026-04-28T00:00:00"},
+    }
+    result = compact_sleep_session(session)
+    assert result["heart_rate"]["summary"] == {"min": None, "max": None, "avg": None, "samples": 0}
+    assert "items" not in result["heart_rate"]
+
+
+def test_compact_handles_null_hrv_items():
+    """hrv.items=None must not raise TypeError."""
+    session = {
+        "id": "s1", "type": "long_sleep", "day": "2026-04-28",
+        "hrv": {"interval": 300, "items": None, "timestamp": "2026-04-28T00:00:00"},
+    }
+    result = compact_sleep_session(session)
+    assert result["hrv"]["summary"] == {"min": None, "max": None, "avg": None, "samples": 0}
+    assert "items" not in result["hrv"]

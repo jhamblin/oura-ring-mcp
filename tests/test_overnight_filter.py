@@ -134,3 +134,27 @@ async def test_sleep_error_envelope():
     result = await _call_sleep(date="2026-04-13")
     assert result["error"] == "oura_api_error"
     assert result["status"] == 401
+
+
+# ------------------------------------------------------------------
+# Null-day guard (real-world defensive fix)
+# ------------------------------------------------------------------
+
+
+@respx.mock
+async def test_null_day_session_excluded():
+    """Sessions with day=None must be silently skipped, not cause a TypeError."""
+    fixture_with_null = {
+        "data": [
+            {"id": "s1", "type": "long_sleep", "day": None,
+             "bedtime_start": "2026-04-12T23:00:00-07:00", "total_sleep_duration": 25200},
+            {"id": "s2", "type": "long_sleep", "day": "2026-04-13",
+             "bedtime_start": "2026-04-13T00:05:00-07:00", "total_sleep_duration": 25200},
+        ],
+        "next_token": None,
+    }
+    respx.get(f"{BASE_URL}/sleep").mock(return_value=httpx.Response(200, json=fixture_with_null))
+    result = await _call_sleep(date="2026-04-13")
+    assert "error" not in result
+    assert len(result["data"]) == 1
+    assert result["data"][0]["day"] == "2026-04-13"

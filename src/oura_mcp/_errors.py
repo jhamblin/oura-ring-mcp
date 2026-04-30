@@ -33,5 +33,11 @@ def safe_tool(
                 "endpoint": e.endpoint,
                 "message": e.body[:500],
             }
+        except Exception as e:
+            return {
+                "error": "internal_error",
+                "type": type(e).__name__,
+                "message": str(e),
+            }
 
     return wrapper

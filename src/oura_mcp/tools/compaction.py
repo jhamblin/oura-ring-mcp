@@ -64,7 +64,7 @@ def compact_sleep_session(session: dict[str, Any]) -> dict[str, Any]:
     if isinstance(hr, dict) and "items" in hr:
         out["heart_rate"] = {
             **{k: v for k, v in hr.items() if k != "items"},
-            "summary": _summarize_items(hr["items"]),
+            "summary": _summarize_items(hr["items"] or []),
         }
 
     # hrv
@@ -72,7 +72,7 @@ def compact_sleep_session(session: dict[str, Any]) -> dict[str, Any]:
     if isinstance(hrv, dict) and "items" in hrv:
         out["hrv"] = {
             **{k: v for k, v in hrv.items() if k != "items"},
-            "summary": _summarize_items(hrv["items"]),
+            "summary": _summarize_items(hrv["items"] or []),
         }
 
     # Drop bulky strings

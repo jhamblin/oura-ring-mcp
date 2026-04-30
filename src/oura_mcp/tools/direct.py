@@ -223,7 +223,8 @@ def register(mcp: FastMCP) -> None:
             all_sessions = await client.get_all("sleep", buf_params)
 
         # Filter to sessions whose logical day is within the originally requested range.
-        filtered = [s for s in all_sessions if req_start <= s["day"] <= req_end]
+        # Guard against sessions with a null day field (rare but seen in the wild).
+        filtered = [s for s in all_sessions if s.get("day") and req_start <= s["day"] <= req_end]
 
         if format == "compact":
             filtered = compact_sleep_sessions(filtered)
