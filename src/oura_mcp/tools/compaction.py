@@ -30,6 +30,8 @@ def _summarize_items(items: list[dict[str, Any]]) -> dict[str, Any]:
 
     values: list[float] = []
     for item in items:
+        if item is None:
+            continue
         # heart_rate items use "bpm", hrv items use "hrv"
         for key in ("bpm", "hrv"):
             if key in item and item[key] is not None:

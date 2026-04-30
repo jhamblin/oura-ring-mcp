@@ -217,3 +217,12 @@ def test_compact_handles_null_hrv_items():
     result = compact_sleep_session(session)
     assert result["hrv"]["summary"] == {"min": None, "max": None, "avg": None, "samples": 0}
     assert "items" not in result["hrv"]
+
+
+def test_summarize_items_with_none_entries():
+    """items list containing None entries must not raise TypeError."""
+    items = [None, {"bpm": 55}, None, {"bpm": 60}]
+    s = _summarize_items(items)
+    assert s["min"] == 55
+    assert s["max"] == 60
+    assert s["samples"] == 2
