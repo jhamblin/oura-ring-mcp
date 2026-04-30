@@ -219,9 +219,13 @@ def test_compact_handles_null_hrv_items():
     assert "items" not in result["hrv"]
 
 
-def test_summarize_items_with_none_entries():
-    """items list containing None entries must not raise TypeError."""
-    items = [None, {"bpm": 55}, None, {"bpm": 60}]
+def test_summarize_items_with_non_dict_entries():
+    """items list containing None or float entries must not raise TypeError.
+
+    The Oura API occasionally returns mixed-type items lists (None values,
+    raw floats). Only dict entries should contribute to the summary.
+    """
+    items = [None, {"bpm": 55}, 42.0, {"bpm": 60}, None]
     s = _summarize_items(items)
     assert s["min"] == 55
     assert s["max"] == 60
