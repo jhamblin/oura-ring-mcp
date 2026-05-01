@@ -40,14 +40,17 @@ If a token is accidentally committed: revoke it immediately at cloud.ouraring.co
 
 ```bash
 pip install oura-ring-mcp
+# or with uv:
+uv pip install oura-ring-mcp
 ```
 
 Or for a developer install from source:
 
 ```bash
-git clone https://github.com/jhamblin/oura-mcp.git
-cd oura-mcp
+git clone https://github.com/jhamblin/oura-ring-mcp.git
+cd oura-ring-mcp
 pip install -e .
+# or: uv pip install -e .
 ```
 
 **2. Set your PAT**
