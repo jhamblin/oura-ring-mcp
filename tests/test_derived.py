@@ -5,9 +5,9 @@ from __future__ import annotations
 import httpx
 import respx
 
-from oura_mcp.client import BASE_URL
-from oura_mcp.server import mcp
-from oura_mcp.tools.derived import (
+from oura_ring_mcp.client import BASE_URL
+from oura_ring_mcp.server import mcp
+from oura_ring_mcp.tools.derived import (
     _date_range,
     _percentile_nearest_rank,
     _primary_session,

@@ -3,14 +3,14 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
-name = "oura-mcp"
-version = "0.1.0.dev0"
+name = "oura-ring-mcp"
+version = "0.1.0"
 description = "Model Context Protocol server exposing the full Oura Ring v2 API"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.14"
 authors = [{ name = "Jeff Hamblin" }]
-keywords = ["mcp", "oura", "health", "sleep", "hrv", "model-context-protocol"]
+keywords = ["mcp", "oura", "oura-ring", "health", "sleep", "hrv", "model-context-protocol"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -35,14 +35,15 @@ dev = [
 ]
 
 [project.scripts]
-oura-mcp = "oura_mcp.server:main"
+oura-ring-mcp = "oura_ring_mcp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/jhamblin/oura-mcp"
 Issues = "https://github.com/jhamblin/oura-mcp/issues"
+PyPI = "https://pypi.org/project/oura-ring-mcp"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/oura_mcp"]
+packages = ["src/oura_ring_mcp"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

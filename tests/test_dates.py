@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from oura_mcp._dates import resolve_date_params
+from oura_ring_mcp._dates import resolve_date_params
 
 
 def test_single_date_maps_to_start_and_end():
@@ -21,21 +21,21 @@ def test_explicit_range_passes_through():
 
 
 def test_only_start_date_defaults_end_to_today():
-    with patch("oura_mcp._dates._date") as mock_date:
+    with patch("oura_ring_mcp._dates._date") as mock_date:
         mock_date.today.return_value = date(2026, 4, 29)
         p = resolve_date_params(None, "2026-04-01", None)
     assert p == {"start_date": "2026-04-01", "end_date": "2026-04-29"}
 
 
 def test_only_end_date_defaults_start_to_today():
-    with patch("oura_mcp._dates._date") as mock_date:
+    with patch("oura_ring_mcp._dates._date") as mock_date:
         mock_date.today.return_value = date(2026, 4, 29)
         p = resolve_date_params(None, None, "2026-04-29")
     assert p == {"start_date": "2026-04-29", "end_date": "2026-04-29"}
 
 
 def test_no_args_defaults_both_to_today():
-    with patch("oura_mcp._dates._date") as mock_date:
+    with patch("oura_ring_mcp._dates._date") as mock_date:
         mock_date.today.return_value = date(2026, 4, 29)
         p = resolve_date_params(None, None, None)
     assert p == {"start_date": "2026-04-29", "end_date": "2026-04-29"}

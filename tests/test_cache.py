@@ -8,10 +8,10 @@ from datetime import date
 import httpx
 import respx
 
-from oura_mcp import cache as cache_mod
-from oura_mcp.cache import cache_read, cache_write, is_today, resolve_cache_dir
-from oura_mcp.client import BASE_URL
-from oura_mcp.server import mcp
+from oura_ring_mcp import cache as cache_mod
+from oura_ring_mcp.cache import cache_read, cache_write, is_today, resolve_cache_dir
+from oura_ring_mcp.client import BASE_URL
+from oura_ring_mcp.server import mcp
 
 _tools = {t.name: t for t in mcp._tool_manager.list_tools()}
 

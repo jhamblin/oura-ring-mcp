@@ -7,9 +7,9 @@ import copy
 import httpx
 import respx
 
-from oura_mcp.client import BASE_URL
-from oura_mcp.server import mcp
-from oura_mcp.tools.compaction import (
+from oura_ring_mcp.client import BASE_URL
+from oura_ring_mcp.server import mcp
+from oura_ring_mcp.tools.compaction import (
     compact_sleep_session,
     compact_sleep_sessions,
     _summarize_items,

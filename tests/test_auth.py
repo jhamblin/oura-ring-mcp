@@ -6,8 +6,8 @@ import json
 
 import pytest
 
-from oura_mcp import auth
-from oura_mcp.auth import PATNotConfigured, resolve_pat
+from oura_ring_mcp import auth
+from oura_ring_mcp.auth import PATNotConfigured, resolve_pat
 
 
 def test_override_wins_over_env_and_file(monkeypatch, tmp_path):

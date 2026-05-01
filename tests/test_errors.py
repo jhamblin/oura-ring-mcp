@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from oura_mcp._errors import safe_tool
-from oura_mcp.auth import PATNotConfigured
-from oura_mcp.client import OuraAPIError
+from oura_ring_mcp._errors import safe_tool
+from oura_ring_mcp.auth import PATNotConfigured
+from oura_ring_mcp.client import OuraAPIError
 
 
 async def test_safe_tool_catches_pat_not_configured():

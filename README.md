@@ -39,7 +39,7 @@ If a token is accidentally committed: revoke it immediately at cloud.ouraring.co
 **1. Install**
 
 ```bash
-pip install oura-mcp
+pip install oura-ring-mcp
 ```
 
 Or for a developer install from source:
@@ -69,7 +69,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "oura": {
-      "command": "oura-mcp",
+      "command": "oura-ring-mcp",
       "env": {
         "OURA_PAT": "your-token-here"
       }

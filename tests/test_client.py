@@ -8,7 +8,7 @@ import httpx
 import pytest
 import respx
 
-from oura_mcp.client import BASE_URL, OuraAPIError, OuraClient, _RedactAuthHeader
+from oura_ring_mcp.client import BASE_URL, OuraAPIError, OuraClient, _RedactAuthHeader
 
 
 @respx.mock

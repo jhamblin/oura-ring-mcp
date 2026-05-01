@@ -11,8 +11,8 @@ from __future__ import annotations
 import httpx
 import respx
 
-from oura_mcp.server import mcp
-from oura_mcp.client import BASE_URL
+from oura_ring_mcp.server import mcp
+from oura_ring_mcp.client import BASE_URL
 
 # Resolve the tool callables from the FastMCP registry.
 _tools = {t.name: t for t in mcp._tool_manager.list_tools()}

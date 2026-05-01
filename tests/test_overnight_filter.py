@@ -23,8 +23,8 @@ from pathlib import Path
 import httpx
 import respx
 
-from oura_mcp.client import BASE_URL
-from oura_mcp.server import mcp
+from oura_ring_mcp.client import BASE_URL
+from oura_ring_mcp.server import mcp
 
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "sleep_response.json").read_text())
 
