@@ -6,7 +6,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .tools import derived, direct
 
-mcp = FastMCP("oura-mcp")
+mcp = FastMCP("oura-ring-mcp")
 direct.register(mcp)
 derived.register(mcp)
 
