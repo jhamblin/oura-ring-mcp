@@ -206,6 +206,8 @@ def register(mcp: FastMCP) -> None:
         In compact mode, heart_rate and hrv contain summaries instead of raw items.
         """
         params = resolve_date_params(date, start_date, end_date)
+        if format not in {"compact", "full"}:
+            raise ValueError("format must be 'compact' or 'full'")
         req_start = params["start_date"]
         req_end = params["end_date"]
 
@@ -503,11 +505,18 @@ def register(mcp: FastMCP) -> None:
         --------------
         {"data": [{"timestamp": "...", "bpm": 55}, ...]}
         """
+        if format not in {"compact", "full"}:
+            raise ValueError("format must be 'compact' or 'full'")
+
         today = _date.today().isoformat()
         params = {
             "start_datetime": start_datetime or f"{today}T00:00:00",
             "end_datetime": end_datetime or f"{today}T23:59:59",
         }
+
+        if params["start_datetime"] > params["end_datetime"]:
+            raise ValueError("start_datetime must be on or before end_datetime")
+
         async with OuraClient(resolve_pat(pat)) as client:
             items = await client.get_all("heartrate", params)
 

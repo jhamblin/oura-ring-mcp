@@ -2,6 +2,8 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes the **full** Oura Ring v2 API to LLM agents — including period-level sleep data, time-series HR/HRV, hypnogram rendering, SpO2, and derived analytics tools.
 
+Tested on Python 3.11+
+
 ## Why this exists
 
 Existing community Oura MCP servers return only **daily contributor scores** — opaque 0–100 numbers from Oura's algorithm (`deep_sleep: 11`, `efficiency: 88`). They omit the underlying period data: actual minutes of deep/REM/light sleep, sleep stage timeline, restless periods, breathing rate, SpO2, time-series heart rate and HRV.
@@ -42,6 +44,17 @@ If a token is accidentally committed: revoke it immediately at cloud.ouraring.co
 pip install oura-ring-mcp
 # or with uv:
 uv pip install oura-ring-mcp
+```
+
+For development and tests:
+
+```bash
+git clone https://github.com/jhamblin/oura-ring-mcp.git
+cd oura-ring-mcp
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+pytest -q
 ```
 
 Or for a developer install from source:
@@ -168,11 +181,19 @@ Set `OURA_MCP_CACHE_DIR` to enable the local cache.
 - **`cache_status`** field on every `oura_summary_table` row: `"hit"`, `"miss"`, or `"disabled"`
 - **`oura_cache_rebuild`**: force-refresh a date range (useful for historical backfills or after Oura revises scores retroactively)
 
-Cache files match the structure of `oura_fetch.py`'s `raw/oura/` layout, so existing raw data from that script is compatible.
+Cache files store one JSON object per day and are safe to delete; the server will repopulate them on demand.
+
+If a cache file is corrupted, the server treats it as a miss and re-fetches that day from Oura.
 
 ---
 
 ## Implementation notes
+
+### Input validation
+
+Date-based tools validate `YYYY-MM-DD` inputs and reject inverted ranges.
+
+`oura_sleep` and `oura_heart_rate` only accept `format="compact"` or `format="full"`.
 
 ### Overnight sleep buffer
 
