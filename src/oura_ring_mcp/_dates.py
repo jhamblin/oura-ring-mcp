@@ -3,6 +3,15 @@
 from __future__ import annotations
 
 from datetime import date as _date
+from datetime import datetime
+
+
+def _parse_iso_date(value: str, field_name: str) -> None:
+    """Validate that a value is a YYYY-MM-DD date string."""
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError as exc:
+        raise ValueError(f"{field_name} must be YYYY-MM-DD; got {value!r}") from exc
 
 
 def resolve_date_params(
@@ -26,10 +35,16 @@ def resolve_date_params(
         )
 
     if date:
+        _parse_iso_date(date, "date")
         return {"start_date": date, "end_date": date}
 
+    if start_date:
+        _parse_iso_date(start_date, "start_date")
+    if end_date:
+        _parse_iso_date(end_date, "end_date")
+
     today = _date.today().isoformat()
-    return {
-        "start_date": start_date or today,
-        "end_date": end_date or today,
-    }
+    resolved = {"start_date": start_date or today, "end_date": end_date or today}
+    if resolved["start_date"] > resolved["end_date"]:
+        raise ValueError("start_date must be on or before end_date")
+    return resolved

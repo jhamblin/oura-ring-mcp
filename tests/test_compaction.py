@@ -197,6 +197,13 @@ async def test_oura_sleep_full_mode_preserves_items():
     assert "items" in session["hrv"]
 
 
+@respx.mock
+async def test_oura_sleep_invalid_format_returns_error_envelope():
+    result = await _tools["oura_sleep"].fn(date="2026-04-28", format="verbose", pat="test-token")
+    assert result["error"] == "internal_error"
+    assert "compact' or 'full" in result["message"]
+
+
 def test_compact_handles_null_hr_items():
     """heart_rate.items=None must not raise TypeError."""
     session = {

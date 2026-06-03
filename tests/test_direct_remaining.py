@@ -198,6 +198,22 @@ async def test_heart_rate_error_envelope():
     assert result["error"] == "oura_api_error"
 
 
+async def test_heart_rate_invalid_format_returns_error_envelope():
+    result = await _call("oura_heart_rate", format="verbose")
+    assert result["error"] == "internal_error"
+    assert "compact' or 'full" in result["message"]
+
+
+async def test_heart_rate_rejects_inverted_datetime_range():
+    result = await _call(
+        "oura_heart_rate",
+        start_datetime="2026-04-28T07:00:00-07:00",
+        end_datetime="2026-04-28T00:00:00-07:00",
+    )
+    assert result["error"] == "internal_error"
+    assert "start_datetime must be on or before end_datetime" == result["message"]
+
+
 # ---------------------------------------------------------------------------
 # oura_ring_configuration
 # ---------------------------------------------------------------------------

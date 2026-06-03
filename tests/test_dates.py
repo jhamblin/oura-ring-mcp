@@ -49,3 +49,13 @@ def test_date_and_start_date_raises():
 def test_date_and_end_date_raises():
     with pytest.raises(ValueError, match="not both"):
         resolve_date_params("2026-04-01", None, "2026-04-07")
+
+
+def test_invalid_date_format_raises():
+    with pytest.raises(ValueError, match="YYYY-MM-DD"):
+        resolve_date_params("04/01/2026", None, None)
+
+
+def test_start_date_after_end_date_raises():
+    with pytest.raises(ValueError, match="on or before"):
+        resolve_date_params(None, "2026-04-08", "2026-04-07")
